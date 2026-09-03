@@ -1,0 +1,7 @@
+[user]
+	name = Molina-Chairman
+	email = jmiguel1535@gmail.com
+[credential]
+	helper = store
+[http]
+	postBuffer = 524288000

@@ -1,0 +1,5 @@
+m82.env
+*.json
+*.log
+__pycache__/
+.m82_secrets/

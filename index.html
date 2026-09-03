@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>M82 SxS Bridge - Sovereign</title>
+</head>
+<body style="background:#0d1117; color:#c9d1d9; font-family:sans-serif; padding:20px;">
+<h3>🏛️ M82 SOVEREIGN - LSEG SxS Bridge</h3>
+<div id="context" style="padding:10px; background:#161b22; border-radius:6px;">Iniciando conexión con Workspace...</div>
+
+<script async src="https://cdn.refinitiv.com/public/libs/sxs-web/sxs-web-loader.js"></script>
+<script>
+  window.SxsWeb = window.SxsWeb || [];
+  window.sxsWeb = window.sxsWeb || function () { sxsWeb.push(arguments); };
+
+  sxsWeb("start", new Date());
+  sxsWeb("onLoad", (status) => {
+    console.log("SxS Web status:", status);
+    document.getElementById('context').innerText = "Status SxS: " + status;
+    if(status === 'ok') {
+        sxsWeb("subscribe", "instrument", (instrument) => {
+            console.log("Workspace Instrument:", instrument);
+            document.getElementById('context').innerText = "Ticker Activo: " + JSON.stringify(instrument);
+            fetch('http://127.0.0.1:8081/m82-context', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    source: "LSEG_Workspace_SxS",
+                    instrument: instrument,
+                    captured_utc: new Date().toISOString()
+                })
+            }).catch(e => console.log("Gateway no detectado:", e));
+        });
+    }
+  });
+</script>
+</body>
+</html>
