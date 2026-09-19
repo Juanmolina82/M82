@@ -1,0 +1,18 @@
+{
+  "event_id": "VEN-ENERGY-20260902-CHEVRON-ENI-GEV",
+  "captured_utc": "2026-09-02T22:00:00Z",
+  "institution": "Molina Holdings LLC / Molina Global LLC",
+  "operating_node": "CARACAS",
+  "symbol_or_subject": "Venezuela Energy Agreements - Chevron, Eni, GE Vernova",
+  "source": "U.S. Dept of Energy + Reuters + WSJ",
+  "source_timestamp": "2026-09-02T18:00:00Z",
+  "data_status": "MANUAL_RESEARCH",
+  "latency_status": "END_OF_DAY",
+  "raw_or_normalized_value": "Chevron $7B 600k bpd, Eni Junin5 25y 35B bbl, GEV 1GW+5GW",
+  "rule_name": "energy_tightness_monitor_v6",
+  "rule_version": "6.0",
+  "risk_flag": "two_tier_market_NABEP_vs_market_rate",
+  "message_type": "market_observation",
+  "telegram_delivery_status": "pending",
+  "execution_enabled": false
+}

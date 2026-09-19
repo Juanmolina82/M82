@@ -1,0 +1,18 @@
+{
+  "event_id": "RIG-20260903033308",
+  "captured_utc": "2026-09-03T03:33:08.787472+00:00",
+  "institution": "Molina Holdings LLC / Molina Global LLC",
+  "operating_node": "CARACAS",
+  "symbol_or_subject": "RIG",
+  "source": "Yahoo Finance - Secondary",
+  "source_timestamp": "2026-09-03T03:33:08.787492+00:00",
+  "data_status": "DELAYED",
+  "latency_status": "DELAYED_15M",
+  "raw_or_normalized_value": {
+    "last": 6.21999979019165,
+    "pct": 4.72
+  },
+  "rule_name": "energy_tightness_monitor_v6",
+  "rule_version": "6.0",
+  "execution_enabled": false
+}

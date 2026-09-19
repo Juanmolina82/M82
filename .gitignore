@@ -1,5 +1,6 @@
-m82.env
-*.json
+vault.json
 *.log
 __pycache__/
-.m82_secrets/
+.env
+M82_Backups/
+node_modules/

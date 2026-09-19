@@ -1,0 +1,29 @@
+{
+  "AMZN": {
+    "price": 255.14,
+    "dma50": 251.96,
+    "signal": "TESTING_50DMA"
+  },
+  "AAPL": {
+    "price": 255.8,
+    "pe_fy27": 30.5,
+    "weight_spx": 7.9
+  },
+  "UST": {
+    "10Y": 4.75,
+    "30Y": 5.2423,
+    "spread": 0.4923
+  },
+  "SPX": {
+    "level": 7610,
+    "support": 7610
+  },
+  "VEN": {
+    "bid": 51.75,
+    "mid": 52.25,
+    "ev": 13.0
+  },
+  "WTI": {
+    "price": 87.0
+  }
+}

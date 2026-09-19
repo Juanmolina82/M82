@@ -1,0 +1,18 @@
+{
+  "event_id": "XOM-20260903033310",
+  "captured_utc": "2026-09-03T03:33:10.203687+00:00",
+  "institution": "Molina Holdings LLC / Molina Global LLC",
+  "operating_node": "CARACAS",
+  "symbol_or_subject": "XOM",
+  "source": "Yahoo Finance - Secondary",
+  "source_timestamp": "2026-09-03T03:33:10.203742+00:00",
+  "data_status": "DELAYED",
+  "latency_status": "DELAYED_15M",
+  "raw_or_normalized_value": {
+    "last": 164.14999389648438,
+    "pct": -0.26
+  },
+  "rule_name": "energy_tightness_monitor_v6",
+  "rule_version": "6.0",
+  "execution_enabled": false
+}

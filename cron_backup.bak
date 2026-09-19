@@ -1,0 +1,1 @@
+*/5 * * * * python3 /data/data/com.termux/files/home/m82_venezuela_bond_watcher.py >> /data/data/com.termux/files/home/m82_bonds.log 2>&1

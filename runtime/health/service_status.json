@@ -1,0 +1,31 @@
+{
+  "captured_utc": "2026-09-03T17:39:06.067356+00:00",
+  "service": "m82-health",
+  "node": "CARACAS",
+  "mode": "INFORMATIONAL_ONLY",
+  "expected_services": [
+    "m82-alerts",
+    "m82-v21"
+  ],
+  "processes": {
+    "m82-ingestion": {
+      "status": "stopped",
+      "pid": 0,
+      "restarts": 0
+    },
+    "m82-health": {
+      "status": "online",
+      "pid": 4606,
+      "restarts": 0
+    }
+  },
+  "missing": [
+    "m82-alerts",
+    "m82-v21"
+  ],
+  "unhealthy": [
+    "m82-alerts",
+    "m82-v21"
+  ],
+  "healthy": false
+}

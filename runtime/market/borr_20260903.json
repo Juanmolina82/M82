@@ -1,0 +1,18 @@
+{
+  "event_id": "BORR-20260903033309",
+  "captured_utc": "2026-09-03T03:33:09.579146+00:00",
+  "institution": "Molina Holdings LLC / Molina Global LLC",
+  "operating_node": "CARACAS",
+  "symbol_or_subject": "BORR",
+  "source": "Yahoo Finance - Secondary",
+  "source_timestamp": "2026-09-03T03:33:09.579168+00:00",
+  "data_status": "DELAYED",
+  "latency_status": "DELAYED_15M",
+  "raw_or_normalized_value": {
+    "last": 4.809999942779541,
+    "pct": 3.94
+  },
+  "rule_name": "energy_tightness_monitor_v6",
+  "rule_version": "6.0",
+  "execution_enabled": false
+}
