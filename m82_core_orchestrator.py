@@ -17,6 +17,9 @@ os.makedirs(GALLERY_DIR, exist_ok=True)
 
 # Lista de Daemons individuales + Lanzador de la Fábrica RSS
 DAEMONS = [
+    "m82_refinitiv_watchlist_daemon.py",
+    "m82_refinitiv_banking_daemon.py",
+    "m82_keepalive_5g_daemon.py",
     "m82_launch_all.py",
     "m82_macro_daemon.py",
     "m82_scheduler_v9.py",
