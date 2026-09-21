@@ -3,8 +3,10 @@ import xml.etree.ElementTree as ET
 
 DB_PATH = os.path.expanduser("~/M82/m82_database.db")
 
-# Fuentes directas asociadas a cada top newsroom / AGI Feed
+# RSS Map incluyendo la sala de prensa dedicada a Donald Trump y mercados
 RSS_MAP = {
+    "TRUMP_NEWSROOM": "https://news.google.com/rss/search?q=(%22Donald+Trump%22+OR+%22Trump+administration%22+OR+%22Trump+tariffs%22+OR+%22Trump+policy%22)+when:1d&hl=en-US&gl=US&ceid=US:en",
+    "NEW_YORK_DESK": "https://news.google.com/rss/search?q=(%22Wall+Street%22+OR+%22NYSE%22+OR+%22Nasdaq%22+OR+%22Federal+Reserve+Bank+of+New+York%22+OR+%22NY+Fed%22+OR+%22Manhattan+commercial+real+estate%22)+when:1d&hl=en-US&gl=US&ceid=US:en",
     "REUTERS_TOP": "https://news.google.com/rss/search?q=site:reuters.com",
     "TECH_AI_CAPEX": "https://news.google.com/rss/search?q=AI+Capex",
     "VENEZUELA_DESK": "https://news.google.com/rss/search?q=Venezuela+bonds",
@@ -37,10 +39,10 @@ def inject_headline(source, headline):
     try:
         conn = sqlite3.connect(DB_PATH, timeout=10.0)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO m82_multi_stream (daemon_source, headline) VALUES (?, ?)", (source, headline))
+        cursor.execute("INSERT INTO m82_multi_stream (daemon_source, headline, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP)", (source, headline))
         conn.commit()
         conn.close()
-        print(f"⚡ [INJECTED] [{source}] -> {headline[:50]}...", flush=True)
+        print(f"⚡ [INJECTED] [{source}] -> {headline[:60]}...", flush=True)
     except sqlite3.IntegrityError:
         pass
     except Exception as e:
@@ -65,6 +67,6 @@ def run_daemon(daemon_name, query=""):
             inject_headline(daemon_name, hl)
 
 if __name__ == "__main__":
-    daemon_name = sys.argv[1] if len(sys.argv) > 1 else "REUTERS_TOP"
+    daemon_name = sys.argv[1] if len(sys.argv) > 1 else "TRUMP_NEWSROOM"
     query = sys.argv[2] if len(sys.argv) > 2 else ""
     run_daemon(daemon_name, query)

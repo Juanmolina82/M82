@@ -4,7 +4,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 try:
     subprocess.run(["termux-wake-lock"], check=False)
-except Exception: pass
+except Exception:
+    pass
 
 TOKEN = "8600412468:AAHLLRDPus66Y1hSgDKbwGC5zdW6DdufP3Y"
 CHAT_ID = "-1004335849125"
@@ -14,7 +15,9 @@ GALLERY_DIR = "/sdcard/Pictures/M82_Cards"
 
 os.makedirs(GALLERY_DIR, exist_ok=True)
 
+# Lista de Daemons individuales + Lanzador de la Fábrica RSS
 DAEMONS = [
+    "m82_launch_all.py",
     "m82_macro_daemon.py",
     "m82_scheduler_v9.py",
     "m82_crypto_commodities_daemon.py",
@@ -24,30 +27,12 @@ DAEMONS = [
     "m82_valuation_peers_daemon.py",
     "m82_governance_officers_daemon.py",
     "m82_esg_sustainability_daemon.py",
+    "m82_refinitiv_venues_charts_daemon.py",
+    "m82_commodities_topnews_daemon.py",
+    "m82_us_me_energy_fund_daemon.py",
     "m82_financials_fundamentals_daemon.py",
     "m82_estimates_analysts_daemon.py",
-    "m82_news_research_daemon.py",
-    "m82_venues_exchanges_daemon.py",
-    "m82_orderbook_microstructure_daemon.py",
-    "m82_economic_polls_macro_daemon.py",
-    "m82_global_markets_movers_daemon.py",
-    "m82_top_news_geopolitics_daemon.py",
-    "m82_lseg_notebook_daemon.py",
-    "m82_jupyter_metadata_daemon.py",
-    "m82_jupyter_kernel_daemon.py",
-    "m82_bloomberg_terminal_daemon.py",
-    "m82_private_markets_daemon.py",
-    "m82_lseg_news_wsj_daemon.py",
-    "m82_treasury_bonds_daemon.py",
-    "m82_geopolitics_ai_daemon.py",
-    "m82_market_monitor_daemon.py",
-    "m82_realtime_wire_daemon.py",
-    "m82_interactive_brokers_daemon.py",
-    "m82_jpmorgan_megabanks_daemon.py",
-    "m82_refinitiv_global_chain_daemon.py",
-    "m82_refinitiv_venues_charts_daemon.py",
-    "m82_refinitiv_banking_metrics_daemon.py",
-    "m82_spacex_telecom_daemon.py"
+    "m82_news_research_daemon.py"
 ]
 
 def log(msg):
@@ -104,7 +89,8 @@ def generate_card_image(headline, source, row_id):
                 font_footer = ImageFont.truetype(path.replace("DejaVuSerif", "DejaVuSans-Bold"), 32)
                 font_sub = ImageFont.truetype(path.replace("DejaVuSerif", "DejaVuSans"), 22)
                 break
-            except Exception: pass
+            except Exception:
+                pass
 
     if not font_title:
         font_meta = font_header = font_title = font_footer = font_sub = ImageFont.load_default()
@@ -133,19 +119,25 @@ def generate_card_image(headline, source, row_id):
     draw.text((60 + brand_width + 12, 882), "LLC", fill='#6b7280', font=font_sub)
 
     img.save(IMG_PATH)
+
     gallery_file = os.path.join(GALLERY_DIR, f"M82_CARD_{row_id}_{int(time.time())}.png")
     shutil.copy(IMG_PATH, gallery_file)
 
     try:
         subprocess.run(["termux-media-scan", gallery_file], check=False)
-    except Exception: pass
+    except Exception:
+        pass
 
     log(f"📸 Tarjeta guardada en Galería: {gallery_file}")
     return IMG_PATH
 
 def send_telegram_photo(photo_path, caption):
     url = f"https://api.telegram.org/bot{TOKEN}/sendPhoto"
-    payload = {"chat_id": CHAT_ID, "caption": caption, "parse_mode": "Markdown"}
+    payload = {
+        "chat_id": CHAT_ID,
+        "caption": caption,
+        "parse_mode": "Markdown"
+    }
     try:
         with open(photo_path, 'rb') as photo:
             r = requests.post(url, data=payload, files={'photo': photo}, timeout=15)
@@ -157,7 +149,8 @@ def send_telegram_photo(photo_path, caption):
 def check_and_restart_daemons():
     for daemon in DAEMONS:
         daemon_path = os.path.expanduser(f"~/M82/{daemon}")
-        if not os.path.exists(daemon_path): continue
+        if not os.path.exists(daemon_path):
+            continue
         cmd = f"pgrep -f {daemon}"
         result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
         if result.returncode != 0:
@@ -165,15 +158,29 @@ def check_and_restart_daemons():
             subprocess.Popen(["python3", "-u", daemon_path])
 
 def dispatch_pending_signals():
-    if not os.path.exists(DB_PATH): return
+    if not os.path.exists(DB_PATH):
+        return
+
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, daemon_source, headline FROM m82_multi_stream WHERE status = 'PENDING' LIMIT 3")
+
+        cursor.execute("""
+            SELECT id, daemon_source, headline 
+            FROM m82_multi_stream 
+            WHERE status = 'PENDING' 
+            LIMIT 3
+        """)
         rows = cursor.fetchall()
 
         for row_id, source, headline in rows:
-            caption = f"🚨 *#M82 BREAKING SUMMARY*\n\n🔴 *[{str(source).upper()}]*\n{headline}\n\n🏛 @MolinaHoldings LLC"
+            caption = (
+                f"🚨 *#M82 BREAKING SUMMARY*\n\n"
+                f"🔴 *[{str(source).upper()}]*\n"
+                f"{headline}\n\n"
+                f"🏛 @MolinaHoldings LLC"
+            )
+
             log(f"🎨 Generando tarjeta ID {row_id}...")
             img_file = generate_card_image(headline, source, row_id)
 
@@ -183,6 +190,7 @@ def dispatch_pending_signals():
                 log(f"✅ Tarjeta despachada ID {row_id}.")
             else:
                 log(f"⚠️ Falló el envío ID {row_id}.")
+
             time.sleep(3)
 
         conn.close()
@@ -191,8 +199,9 @@ def dispatch_pending_signals():
 
 def main():
     log("==========================================")
-    log("🚀 INFRAESTRUCTURA M82 INTEGRADA (32 DAEMONS ACTIVOS)")
+    log("🚀 INFRAESTRUCTURA M82 INTEGRADA CON FÁBRICA DE DAEMONS Y RSS")
     log("==========================================")
+
     while True:
         check_and_restart_daemons()
         dispatch_pending_signals()
