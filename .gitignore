@@ -1,28 +1,4 @@
-# Local runtimes and dependency caches
-.cargo/
-node_modules/
-__pycache__/
-*.py[cod]
-
-# Local databases, state, logs, and generated metrics
 *.db
-*.sqlite
-*.sqlite3
 *.log
-*.pid
-last_state.json
-metrics.json
-m82_evidence_log.json
-m82_heatmap_last.json
-research/M82_PM2_STATUS.json
-runtime/
-
-# Secrets and local environment configuration
-.env
-.env.*
-*.pem
-*.key
-
-vault.json
-
-vault.json
+*.png
+backups/

@@ -1,0 +1,47 @@
+[
+  {
+    "event_id": "VD-242562325653",
+    "observed_at": "2026-09-19T06:34:03.898787+00:00",
+    "effective_date": "2026-09-18",
+    "source_type": "PUBLIC_REGULATORY_NOTICE",
+    "authority": "OFAC",
+    "jurisdiction": "US_TREASURY",
+    "topic": "GL_5Z_EXTENSION",
+    "entity": "PDVSA_2020_BONDS",
+    "summary": "Official update on General License 5Z regarding temporary restriction of rights to PDVSA 2020 8.5% collateral.",
+    "source_url": "https://ofac.treasury.gov/sanctions-programs-and-country-information/venezuela",
+    "confidence": 1.0,
+    "review_status": "UNVERIFIED_LOCAL_SNAPSHOT",
+    "actionability": "informational_only"
+  },
+  {
+    "event_id": "VD-090B30C2D557",
+    "observed_at": "2026-09-19T06:34:03.898787+00:00",
+    "effective_date": "2026-09-17",
+    "source_type": "JUDICIAL_DOCKET_SUMMARY",
+    "authority": "SDNY_COURT",
+    "jurisdiction": "US_FEDERAL_COURT_SDNY",
+    "topic": "FAILLA_JUDICIAL_ORDER",
+    "entity": "CITGO_PETROLEUM",
+    "summary": "SDNY District Court order regarding schedule and filings for PDVSA 2020 bondholders and trustees.",
+    "source_url": "https://www.nysd.uscourts.gov",
+    "confidence": 0.98,
+    "review_status": "UNVERIFIED_LOCAL_SNAPSHOT",
+    "actionability": "informational_only"
+  },
+  {
+    "event_id": "VD-67EE6F05D1CD",
+    "observed_at": "2026-09-19T06:34:03.898787+00:00",
+    "effective_date": "2026-09-16",
+    "source_type": "AUCTION_PROCEEDING",
+    "authority": "DELAWARE_DISTRICT_COURT",
+    "jurisdiction": "US_FEDERAL_COURT_DELAWARE",
+    "topic": "STARK_SPECIAL_MASTER_REPORT",
+    "entity": "PDVH_CITGO_SALE",
+    "summary": "Delaware District Court filings on Special Master recommendations for Citgo parent company share sale.",
+    "source_url": "https://www.ded.uscourts.gov",
+    "confidence": 0.97,
+    "review_status": "UNVERIFIED_LOCAL_SNAPSHOT",
+    "actionability": "informational_only"
+  }
+]
