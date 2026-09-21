@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 
 DB_PATH = os.path.expanduser("~/M82/m82_database.db")
 
+# Fuentes directas asociadas a cada top newsroom / AGI Feed
 RSS_MAP = {
     "REUTERS_TOP": "https://news.google.com/rss/search?q=site:reuters.com",
     "TECH_AI_CAPEX": "https://news.google.com/rss/search?q=AI+Capex",
@@ -54,24 +55,16 @@ def fetch_rss_headlines(url):
     except Exception:
         return []
 
-def run_daemon(daemon_name, interval=300):
-    print(f"🚀 [DAEMON ONLINE] {daemon_name} activo. Intervalo: {interval}s (5 min)", flush=True)
+def run_daemon(daemon_name, query=""):
+    print(f"🚀 [DAEMON ONLINE] {daemon_name} activo.", flush=True)
     init_db()
     url = RSS_MAP.get(daemon_name)
-    if not url:
-        print(f"❌ Error: Tópico '{daemon_name}' no existe en RSS_MAP.", flush=True)
-        return
-
-    while True:
-        try:
-            headlines = fetch_rss_headlines(url)
-            for hl in headlines:
-                inject_headline(daemon_name, hl)
-        except Exception as e:
-            print(f"⚠️ Error en {daemon_name}: {e}", flush=True)
-        
-        time.sleep(interval)
+    if url:
+        headlines = fetch_rss_headlines(url)
+        for hl in headlines:
+            inject_headline(daemon_name, hl)
 
 if __name__ == "__main__":
-    daemon_name = sys.argv[1] if len(sys.argv) > 1 else "GLOBAL_NEWS_BREAKING"
-    run_daemon(daemon_name)
+    daemon_name = sys.argv[1] if len(sys.argv) > 1 else "REUTERS_TOP"
+    query = sys.argv[2] if len(sys.argv) > 2 else ""
+    run_daemon(daemon_name, query)
