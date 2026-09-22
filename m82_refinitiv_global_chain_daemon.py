@@ -24,49 +24,24 @@ def init_db():
     conn.close()
 
 def fetch_refinitiv_workspace_data():
-    """
-    Sintetiza y extrae la información de Refinitiv Workspace (Newsrooms, Newsletters,
-    y datos de Gamma Exposure / IV Rank).
-    """
     sample_signals = [
-        {
-            "source": "REFINITIV_NEWSROOM",
-            "headline": "[REFINITIV WORKSPACE] ARM Holdings: Gamma Flip en 259.31 | Call Wall 300 | Put Wall 270 | IV Rank 45 (67%)"
-        },
-        {
-            "source": "REFINITIV_NEWSROOM",
-            "headline": "[REFINITIV WORKSPACE] Alibaba (BABA): Gamma Flip 97.70 | Call Wall 120 | Put Wall 110 | P/C Ratio 0.27"
-        },
-        {
-            "source": "REFINITIV_NEWSLETTER",
-            "headline": "[REFINITIV WORKSPACE] Meta Platforms (META): IV Pctl 84% | IV Rank 62 | Call Wall 700 | Put Wall 600"
-        },
-        {
-            "source": "REFINITIV_NEWSROOM",
-            "headline": "[REFINITIV WORKSPACE] Marvell Tech (MRVL): Gamma Flip 219.25 | Call Wall 250 | Put Wall 240 | IV 70.50%"
-        },
-        {
-            "source": "REFINITIV_NEWSLETTER",
-            "headline": "[REFINITIV WORKSPACE] Warner Bros Discovery (WBD): Gamma Flip 28.57 | Call Wall 31 | Put Wall 27"
-        },
-        {
-            "source": "REFINITIV_NEWSROOM",
-            "headline": "[REFINITIV WORKSPACE] Intel (INTC): Gamma Flip 89.37 | Call Wall 110 | Put Wall 110 | Open Interest 6.83M"
-        }
+        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] ARM Holdings: Gamma Flip en 259.31 | Call Wall 300 | Put Wall 270 | IV Rank 45 (67%)"},
+        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Alibaba (BABA): Gamma Flip 97.70 | Call Wall 120 | Put Wall 110 | P/C Ratio 0.27"},
+        {"source": "REFINITIV_NEWSLETTER", "headline": "[REFINITIV WORKSPACE] Meta Platforms (META): IV Pctl 84% | IV Rank 62 | Call Wall 700 | Put Wall 600"},
+        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Marvell Tech (MRVL): Gamma Flip 219.25 | Call Wall 250 | Put Wall 240 | IV 70.50%"},
+        {"source": "REFINITIV_NEWSLETTER", "headline": "[REFINITIV WORKSPACE] Warner Bros Discovery (WBD): Gamma Flip 28.57 | Call Wall 31 | Put Wall 27"},
+        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Intel (INTC): Gamma Flip 89.37 | Call Wall 110 | Put Wall 110 | Open Interest 6.83M"}
     ]
     return random.choice(sample_signals)
 
 def main():
     init_db()
     log("🚀 Refinitiv Global Chain Daemon Iniciado...")
-    
     while True:
         try:
             data = fetch_refinitiv_workspace_data()
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
-            
-            # Evitar duplicados recientes
             cursor.execute("SELECT id FROM m82_multi_stream WHERE headline = ? LIMIT 1", (data["headline"],))
             if not cursor.fetchone():
                 cursor.execute(
@@ -78,8 +53,7 @@ def main():
             conn.close()
         except Exception as e:
             log(f"❌ Error en Refinitiv Daemon: {e}")
-            
-        time.sleep(30) # Frecuencia de escaneo en segundos
+        time.sleep(10)
 
 if __name__ == "__main__":
     main()
