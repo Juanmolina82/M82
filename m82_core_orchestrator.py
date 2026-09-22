@@ -17,37 +17,23 @@ GALLERY_DIR = "/sdcard/Pictures/M82_Cards"
 os.makedirs(GALLERY_DIR, exist_ok=True)
 
 DAEMONS = [
-    "m82_macro_daemon.py",
-    "m82_scheduler_v9.py",
-    "m82_crypto_commodities_daemon.py",
-    "m82_musk_empire_daemon.py",
-    "m82_insiders_top100_daemon.py",
-    "m82_debt_credit_daemon.py",
-    "m82_valuation_peers_daemon.py",
-    "m82_governance_officers_daemon.py",
-    "m82_esg_sustainability_daemon.py",
-    "m82_financials_fundamentals_daemon.py",
-    "m82_estimates_analysts_daemon.py",
-    "m82_news_research_daemon.py",
-    "m82_venues_exchanges_daemon.py",
-    "m82_orderbook_microstructure_daemon.py",
-    "m82_economic_polls_macro_daemon.py",
-    "m82_global_markets_movers_daemon.py",
-    "m82_top_news_geopolitics_daemon.py",
-    "m82_lseg_notebook_daemon.py",
-    "m82_jupyter_metadata_daemon.py",
-    "m82_jupyter_kernel_daemon.py",
-    "m82_bloomberg_terminal_daemon.py",
-    "m82_private_markets_daemon.py",
-    "m82_lseg_news_wsj_daemon.py",
-    "m82_treasury_bonds_daemon.py",
-    "m82_geopolitics_ai_daemon.py",
-    "m82_market_monitor_daemon.py",
-    "m82_realtime_wire_daemon.py",
-    "m82_interactive_brokers_daemon.py",
-    "m82_reuters_breakingviews.py",
-    "m82_venezuela_legitimacy_daemon.py",
-    "m82_kpler_flow_predictor.py"
+    "m82_unga_summit_tracker_daemon.py", "m82_refinitiv_global_chain_daemon.py",
+    "m82_refinitiv_venues_charts_daemon.py", "m82_reuters_breakingviews.py",
+    "m82_macro_daemon.py", "m82_scheduler_v9.py", "m82_crypto_commodities_daemon.py",
+    "m82_musk_empire_daemon.py", "m82_insiders_top100_daemon.py",
+    "m82_debt_credit_daemon.py", "m82_valuation_peers_daemon.py",
+    "m82_governance_officers_daemon.py", "m82_esg_sustainability_daemon.py",
+    "m82_lseg_green_economy_daemon.py", "m82_financials_fundamentals_daemon.py",
+    "m82_estimates_analysts_daemon.py", "m82_news_research_daemon.py",
+    "m82_venues_exchanges_daemon.py", "m82_orderbook_microstructure_daemon.py",
+    "m82_economic_polls_macro_daemon.py", "m82_global_markets_movers_daemon.py",
+    "m82_top_news_geopolitics_daemon.py", "m82_lseg_notebook_daemon.py",
+    "m82_jupyter_metadata_daemon.py", "m82_jupyter_kernel_daemon.py",
+    "m82_bloomberg_terminal_daemon.py", "m82_private_markets_daemon.py",
+    "m82_lseg_news_wsj_daemon.py", "m82_treasury_bonds_daemon.py",
+    "m82_geopolitics_ai_daemon.py", "m82_market_monitor_daemon.py",
+    "m82_realtime_wire_daemon.py", "m82_interactive_brokers_daemon.py",
+    "m82_venezuela_legitimacy_daemon.py", "m82_kpler_flow_predictor.py"
 ]
 
 def log(msg):
@@ -111,12 +97,12 @@ def generate_card_image(headline, source, row_id):
         font_meta = font_header = font_title = font_footer = font_sub = ImageFont.load_default()
 
     draw.text((60, 60), "SYSTEM: AGI-CORE // QUANTUM NODE: M82-STREAM // LATENCY: 0.012ms", fill='#4b5563', font=font_meta)
-    draw.text((60, 95), "#M82 BREAKING STREAM", fill='#ef4444', font=font_header)
+    draw.text((60, 95), f"#M82 BREAKING [{source.upper()}]", fill='#ef4444', font=font_header)
     draw.line([(60, 140), (740, 140)], fill='#1f2937', width=1)
 
     formatted_headline = headline.title()
     lines = textwrap.wrap(formatted_headline, width=28)
-    y_text = 300
+    y_text = 280
     for line in lines:
         draw.text((60, y_text), line, fill='#ffffff', font=font_title)
         y_text += 62
@@ -193,7 +179,7 @@ def dispatch_pending_signals():
         return
 
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30.0)
         cursor = conn.cursor()
 
         cursor.execute("""

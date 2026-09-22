@@ -24,45 +24,19 @@ def compute_stress_score():
     factors = []
 
     scenarios = [
-        {
-            "name": "Dark Pool Distribution & Inst Selling",
-            "keywords": ["spy", "dark pool", "distribution", "selling"],
-            "query": "SPY dark pool distribution",
-            "weight": 1.5
-        },
-        {
-            "name": "Geopolitical Escalation (Germany / AfD)",
-            "keywords": ["germany", "afd", "election"],
-            "query": "Germany AfD election market risk",
-            "weight": 1.0
-        },
-        {
-            "name": "APAC Risk (North Korea Launch)",
-            "keywords": ["north korea", "missile", "ballistic"],
-            "query": "North Korea missile launch",
-            "weight": 1.2
-        },
-        {
-            "name": "Macro Risk & Yields Spike",
-            "keywords": ["fed", "inflation", "yields"],
-            "query": "Federal Reserve inflation yields",
-            "weight": 1.0
-        }
+        {"name": "Dark Pool & Inst Selling", "query": "SPY dark pool distribution institutional selling", "weight": 1.5},
+        {"name": "Germany/AfD Escalation", "query": "Germany AfD election market risk", "weight": 1.0},
+        {"name": "APAC Missile / Geopolitics", "query": "North Korea ballistic missile launch", "weight": 1.2},
+        {"name": "Macro Risk / Yields Spike", "query": "Federal Reserve inflation yields risk", "weight": 1.0}
     ]
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    }
-
-    session = requests.Session()
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"}
 
     for item in scenarios:
         encoded = urllib.parse.quote(item["query"])
         url = f"https://news.google.com/rss/search?q={encoded}&hl=en-US&gl=US&ceid=US:en"
-        found = False
-        
         try:
-            resp = session.get(url, headers=headers, timeout=20)
+            resp = requests.get(url, headers=headers, timeout=8)
             if resp.status_code == 200:
                 root = ET.fromstring(resp.content)
                 items = root.findall('.//item')
@@ -71,31 +45,8 @@ def compute_stress_score():
                     added = min(item["weight"], round(count * 0.3, 1))
                     base_score += added
                     factors.append(f"{item['name']} (+{added})")
-                    found = True
-        except Exception:
-            pass
-
-        # Si hay timeout en el RSS externo, se valida la presencia contra eventos de la BD M82
-        if not found:
-            try:
-                conn = sqlite3.connect(DB_PATH)
-                cursor = conn.cursor()
-                cursor.execute("SELECT headline FROM m82_multi_stream ORDER BY id DESC LIMIT 50")
-                recent = cursor.fetchall()
-                conn.close()
-
-                match_count = 0
-                for (hl,) in recent:
-                    hl_lower = hl.lower()
-                    if any(kw in hl_lower for kw in item["keywords"]):
-                        match_count += 1
-
-                if match_count > 0:
-                    added = item["weight"]
-                    base_score += added
-                    factors.append(f"{item['name']} (+{added})")
-            except Exception:
-                pass
+        except Exception as e:
+            print(f"⚠️ Error escaneando {item['name']}: {e}", flush=True)
 
     final_score = min(round(base_score, 1), 10.0)
     if not factors:
@@ -106,10 +57,7 @@ def inject_signal():
     init_db()
     score, factors = compute_stress_score()
     triggers_str = ", ".join(factors)
-    
-    # Generar un timestamp único para evitar la restricción UNIQUE de la base de datos
-    ts_suffix = time.strftime("%H%M%S")
-    headline = f"SPY Stress {score}/10 - Institutional Distribution Confirmed | Triggers: {triggers_str} [{ts_suffix}]"
+    headline = f"SPY Stress {score}/10 - Institutional Distribution Confirmed | Triggers: {triggers_str}"
     
     try:
         conn = sqlite3.connect(DB_PATH, timeout=10.0)
@@ -122,7 +70,7 @@ def inject_signal():
         conn.close()
         print(f"✅ [STRESS SCORE] Generado e inyectado a DB M82:\n{headline}", flush=True)
     except sqlite3.IntegrityError:
-        print("⚠️ Registro duplicado en la base de datos.", flush=True)
+        print("⚠️ Esta lectura de estrés ya fue registrada previamente en la BD.", flush=True)
     except Exception as e:
         print(f"❌ Error en DB: {e}", flush=True)
 

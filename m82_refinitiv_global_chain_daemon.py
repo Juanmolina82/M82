@@ -1,59 +1,68 @@
 #!/usr/bin/env python3
-import os, sys, time, sqlite3, random, json
+import os, sys, time, sqlite3, requests, xml.etree.ElementTree as ET
 
 DB_PATH = os.path.expanduser("~/M82/m82_database.db")
-
-def log(msg):
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] [REFINITIV_DAEMON] {msg}", flush=True)
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS m82_multi_stream (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             daemon_source TEXT,
-            headline TEXT,
-            raw_payload TEXT,
-            status TEXT DEFAULT 'AGI_SYNTHESIZED',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            headline TEXT UNIQUE,
+            status TEXT DEFAULT 'PENDING',
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
-    ''')
+    """)
     conn.commit()
     conn.close()
 
-def fetch_refinitiv_workspace_data():
-    sample_signals = [
-        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] ARM Holdings: Gamma Flip en 259.31 | Call Wall 300 | Put Wall 270 | IV Rank 45 (67%)"},
-        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Alibaba (BABA): Gamma Flip 97.70 | Call Wall 120 | Put Wall 110 | P/C Ratio 0.27"},
-        {"source": "REFINITIV_NEWSLETTER", "headline": "[REFINITIV WORKSPACE] Meta Platforms (META): IV Pctl 84% | IV Rank 62 | Call Wall 700 | Put Wall 600"},
-        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Marvell Tech (MRVL): Gamma Flip 219.25 | Call Wall 250 | Put Wall 240 | IV 70.50%"},
-        {"source": "REFINITIV_NEWSLETTER", "headline": "[REFINITIV WORKSPACE] Warner Bros Discovery (WBD): Gamma Flip 28.57 | Call Wall 31 | Put Wall 27"},
-        {"source": "REFINITIV_NEWSROOM", "headline": "[REFINITIV WORKSPACE] Intel (INTC): Gamma Flip 89.37 | Call Wall 110 | Put Wall 110 | Open Interest 6.83M"}
-    ]
-    return random.choice(sample_signals)
+def log(msg):
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{timestamp}] [GLOBAL-CHAIN-ARBITRAGE] {msg}", flush=True)
+
+def insert_headline(source, headline):
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10.0)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO m82_multi_stream (daemon_source, headline, status, timestamp)
+            VALUES (?, ?, 'PENDING', CURRENT_TIMESTAMP)
+        """, (source, headline))
+        conn.commit()
+        log(f"✅ [{source}] Evento Arbitraje/Chain: {headline[:60]}...")
+        conn.close()
+    except sqlite3.IntegrityError:
+        pass
+    except Exception as e:
+        log(f"❌ Error en DB: {e}")
+
+CHAIN_FEEDS = {
+    "CROSS_MARKET_ARBITRAGE": "https://news.google.com/rss/search?q=%22ADR%22+OR+%22GDR%22+OR+%22cross-listing%22+arbitrage+when:1d&hl=en-US&gl=US&ceid=US:en",
+    "GLOBAL_TICKER_CHAIN": "https://news.google.com/rss/search?q=%22JPMorgan%22+OR+%22dual-listing%22+volume+when:1d&hl=en-US&gl=US&ceid=US:en"
+}
+
+def fetch_chain_updates():
+    for source, url in CHAIN_FEEDS.items():
+        try:
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
+            if r.status_code == 200:
+                root = ET.fromstring(r.content)
+                for item in root.findall('.//item')[:3]:
+                    title = item.find('title').text
+                    if " - " in title:
+                        title = title.rsplit(" - ", 1)[0]
+                    insert_headline(source, title.strip())
+        except Exception as e:
+            log(f"⚠️ Error escaneando feed {source}: {e}")
 
 def main():
     init_db()
-    log("🚀 Refinitiv Global Chain Daemon Iniciado...")
+    log("🌐 Daemon Refinitiv Global Chain & Cross-Market Arbitrage Activo.")
     while True:
-        try:
-            data = fetch_refinitiv_workspace_data()
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM m82_multi_stream WHERE headline = ? LIMIT 1", (data["headline"],))
-            if not cursor.fetchone():
-                cursor.execute(
-                    "INSERT INTO m82_multi_stream (daemon_source, headline, raw_payload, status) VALUES (?, ?, ?, 'AGI_SYNTHESIZED')",
-                    (data["source"], data["headline"], json.dumps(data))
-                )
-                conn.commit()
-                log(f"⚡ Nueva señal Refinitiv registrada: {data['headline'][:60]}...")
-            conn.close()
-        except Exception as e:
-            log(f"❌ Error en Refinitiv Daemon: {e}")
-        time.sleep(10)
+        fetch_chain_updates()
+        time.sleep(120)
 
 if __name__ == "__main__":
     main()
