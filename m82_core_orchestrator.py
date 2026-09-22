@@ -2,6 +2,7 @@
 import os, sys, time, math, random, sqlite3, subprocess, requests, textwrap, shutil
 from PIL import Image, ImageDraw, ImageFont
 
+# Activar Wake Lock
 try:
     subprocess.run(["termux-wake-lock"], check=False)
 except Exception:
@@ -9,38 +10,16 @@ except Exception:
 
 TOKEN = "8600412468:AAHLLRDPus66Y1hSgDKbwGC5zdW6DdufP3Y"
 CHAT_ID = "-1004335849125"
+NTFY_URL = "https://ntfy.sh/M82-Molina-Alerts-v2"
 DB_PATH = os.path.expanduser("~/M82/m82_database.db")
 IMG_PATH = os.path.expanduser("~/M82/m82_card.png")
 GALLERY_DIR = "/sdcard/Pictures/M82_Cards"
 
 os.makedirs(GALLERY_DIR, exist_ok=True)
 
-# Lista de Daemons individuales + Lanzador de la Fábrica RSS
-DAEMONS = [
-    "m82_refinitiv_watchlist_daemon.py",
-    "m82_refinitiv_banking_daemon.py",
-    "m82_keepalive_5g_daemon.py",
-    "m82_launch_all.py",
-    "m82_macro_daemon.py",
-    "m82_scheduler_v9.py",
-    "m82_crypto_commodities_daemon.py",
-    "m82_musk_empire_daemon.py",
-    "m82_insiders_top100_daemon.py",
-    "m82_debt_credit_daemon.py",
-    "m82_valuation_peers_daemon.py",
-    "m82_governance_officers_daemon.py",
-    "m82_esg_sustainability_daemon.py",
-    "m82_refinitiv_venues_charts_daemon.py",
-    "m82_commodities_topnews_daemon.py",
-    "m82_us_me_energy_fund_daemon.py",
-    "m82_financials_fundamentals_daemon.py",
-    "m82_estimates_analysts_daemon.py",
-    "m82_news_research_daemon.py"
-]
-
 def log(msg):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] {msg}", flush=True)
+    print(f"[{timestamp}] [M82-CORE] {msg}", flush=True)
 
 def generate_card_image(headline, source, row_id):
     width, height = 800, 1000
@@ -124,14 +103,12 @@ def generate_card_image(headline, source, row_id):
     img.save(IMG_PATH)
 
     gallery_file = os.path.join(GALLERY_DIR, f"M82_CARD_{row_id}_{int(time.time())}.png")
-    shutil.copy(IMG_PATH, gallery_file)
-
     try:
+        shutil.copy(IMG_PATH, gallery_file)
         subprocess.run(["termux-media-scan", gallery_file], check=False)
-    except Exception:
-        pass
+    except Exception as e:
+        log(f"⚠️ Error al guardar en galería: {e}")
 
-    log(f"📸 Tarjeta guardada en Galería: {gallery_file}")
     return IMG_PATH
 
 def send_telegram_photo(photo_path, caption):
@@ -143,22 +120,29 @@ def send_telegram_photo(photo_path, caption):
     }
     try:
         with open(photo_path, 'rb') as photo:
-            r = requests.post(url, data=payload, files={'photo': photo}, timeout=15)
+            r = requests.post(url, data=payload, files={'photo': photo}, timeout=20)
             return r.status_code == 200
     except Exception as e:
-        log(f"❌ Error enviando a Telegram: {e}")
+        log(f"❌ Error de conexión con Telegram: {e}")
         return False
 
-def check_and_restart_daemons():
-    for daemon in DAEMONS:
-        daemon_path = os.path.expanduser(f"~/M82/{daemon}")
-        if not os.path.exists(daemon_path):
-            continue
-        cmd = f"pgrep -f {daemon}"
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
-        if result.returncode != 0:
-            log(f"⚠️ [ALERTA] Daemon caído: {daemon}. Reiniciando...")
-            subprocess.Popen(["python3", "-u", daemon_path])
+def send_ntfy_alert(source, headline):
+    try:
+        headers = {
+            "Title": f"M82 BREAKING | [{str(source).upper()}]",
+            "Priority": "high",
+            "Tags": "rotating_light,chart_with_upwards_trend"
+        }
+        r = requests.post(
+            NTFY_URL,
+            data=headline.encode('utf-8'),
+            headers=headers,
+            timeout=15
+        )
+        return r.status_code == 200
+    except Exception as e:
+        log(f"❌ Error de conexión con Ntfy: {e}")
+        return False
 
 def dispatch_pending_signals():
     if not os.path.exists(DB_PATH):
@@ -172,11 +156,12 @@ def dispatch_pending_signals():
             SELECT id, daemon_source, headline 
             FROM m82_multi_stream 
             WHERE status = 'PENDING' 
-            LIMIT 3
+            LIMIT 1
         """)
-        rows = cursor.fetchall()
+        row = cursor.fetchone()
 
-        for row_id, source, headline in rows:
+        if row:
+            row_id, source, headline = row
             caption = (
                 f"🚨 *#M82 BREAKING SUMMARY*\n\n"
                 f"🔴 *[{str(source).upper()}]*\n"
@@ -184,31 +169,38 @@ def dispatch_pending_signals():
                 f"🏛 @MolinaHoldings LLC"
             )
 
-            log(f"🎨 Generando tarjeta ID {row_id}...")
+            log(f"🎨 Generando tarjeta e iniciando despacho ID {row_id}...")
             img_file = generate_card_image(headline, source, row_id)
 
-            if send_telegram_photo(img_file, caption):
-                cursor.execute("UPDATE m82_multi_stream SET status = 'SENT_TELEGRAM' WHERE id = ?", (row_id,))
-                conn.commit()
-                log(f"✅ Tarjeta despachada ID {row_id}.")
-            else:
-                log(f"⚠️ Falló el envío ID {row_id}.")
+            telegram_ok = send_telegram_photo(img_file, caption)
+            time.sleep(5)  # Espaciado de protección entre APIs
+            ntfy_ok = send_ntfy_alert(source, headline)
 
-            time.sleep(3)
+            if telegram_ok or ntfy_ok:
+                cursor.execute("UPDATE m82_multi_stream SET status = 'DISPATCHED' WHERE id = ?", (row_id,))
+                conn.commit()
+                log(f"✅ Alerta completada ID {row_id} (Telegram: {telegram_ok} | Ntfy: {ntfy_ok})")
+            else:
+                log(f"⚠️ Reintentando despacho en el próximo ciclo para ID {row_id}...")
+
+            time.sleep(10)
 
         conn.close()
     except Exception as e:
-        log(f"❌ Error en DB: {e}")
+        log(f"❌ Error en base de datos: {e}")
 
 def main():
     log("==========================================")
-    log("🚀 INFRAESTRUCTURA M82 INTEGRADA CON FÁBRICA DE DAEMONS Y RSS")
+    log("🚀 REINICIANDO ORQUESTADOR M82 - MODO ROBUSTO")
     log("==========================================")
 
     while True:
-        check_and_restart_daemons()
-        dispatch_pending_signals()
-        time.sleep(15)
+        try:
+            dispatch_pending_signals()
+        except Exception as err:
+            log(f"⚠️ Excepción capturada en bucle principal: {err}")
+        
+        time.sleep(30)
 
 if __name__ == "__main__":
     main()
