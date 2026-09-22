@@ -1,12 +1,10 @@
 #!/bin/bash
-termux-wake-lock 2>/dev/null
-echo "🚀 INICIANDO INFRAESTRUCTURA M82 (32 DAEMONS)"
-pkill -f "m82_" 2>/dev/null
-sleep 1
-nohup python3 -u ~/M82/m82_core_orchestrator.py > ~/m82_telegram.log 2>&1 &
+echo "=== INICIANDO SISTEMA INTEGRADO M82 CORE ==="
+termux-wake-lock
+pkill -f m82
 sleep 2
-if pgrep -f "m82_core_orchestrator.py" > /dev/null; then
-    echo "✅ Orquestador y Daemons M82 Activos."
-else
-    echo "⚠️ Error al arrancar el Orquestador."
-fi
+
+nohup python3 -u ~/M82/m82_refinitiv_global_chain_daemon.py > ~/m82_refinitiv.log 2>&1 &
+nohup python3 -u ~/M82/m82_core_orchestrator.py > ~/m82_orchestrator.log 2>&1 &
+
+echo "=== M82 INFRAESTRUCTURA OPERATIVA ==="
