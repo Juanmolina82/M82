@@ -8,7 +8,7 @@ pkill -f "m82_" || true
 echo "🚀 [M82] Arrancando Orquestador Maestro..."
 nohup python3 -u ~/M82/m82_core_orchestrator.py > ~/M82/m82_orchestrator.log 2>&1 &
 
-echo "🚀 [M82] Lanzando Daemons concurrentes..."
+echo "🚀 [M82] Lanzando los 35 Daemons concurrentes..."
 for daemon in ~/M82/m82_*.py; do
     if [[ "$daemon" != *"m82_core_orchestrator.py"* ]]; then
         bname=$(basename "$daemon")

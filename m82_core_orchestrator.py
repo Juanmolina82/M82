@@ -179,7 +179,7 @@ def dispatch_pending_signals():
         return
 
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=30.0)
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
         cursor.execute("""
