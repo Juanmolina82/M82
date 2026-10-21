@@ -1,4 +1,64 @@
+# === NUCLEO Y CREDENCIALES SENSIBLES — CITADEL/JPM STYLE SHIELD ===
+vault/
+vault.json
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+api_keys.json
+refinitiv_credentials.json
+
+# === BASES DE DATOS Y ESTADO RUNTIME — NUNCA SUBIR ===
 *.db
+*.sqlite
+*.sqlite3
+m82_database.db
+m82_database.db-wal
+m82_database.db-shm
+last_state.json
+metrics.json
+m82_fused_signal.json
+*.wal
+*.shm
+
+# === CACHE, LOGS Y TEMPORALES ===
+__pycache__/
+*.pyc
+*.pyo
 *.log
+runtime/
+.cargo/
+node_modules/
+.venv/
+venv/
+env/
+*.pid
+*.sock
+supervisor.log
+lseg_websocket.log
+orch.log
+bot.log
+
+# === ASSETS GENERADOS Y BACKUPS ===
+M82_Backups/
+M82_Cards/
 *.png
-backups/
+*.jpg
+*.jpeg
+*.tar.gz
+*.zip
+*.bak
+dist/
+build/
+*.egg-info/
+
+# === TERMUX / ANDROID SPECIFIC ===
+.termux/
+.properties
+*.tmp
+.DS_Store
+Thumbs.db
